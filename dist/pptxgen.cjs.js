@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.0 @ 2023-05-17T03:15:58.384Z */
+/* PptxGenJS 3.13.5 @ 2024-08-30T19:55:20.981Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -1663,8 +1663,10 @@ function createSlideMaster(props, target) {
                 addShapeDefinition(tgt, SHAPE_TYPE.LINE, object[key]);
             else if (MASTER_OBJECTS[key] && key === 'rect')
                 addShapeDefinition(tgt, SHAPE_TYPE.RECTANGLE, object[key]);
-            else if (MASTER_OBJECTS[key] && key === 'text')
-                addTextDefinition(tgt, [{ text: object[key].text }], object[key].options, false);
+            else if (MASTER_OBJECTS[key] && key === 'text') {
+                var textObjects = Array.isArray(object[key]) ? object[key] : [{ text: object[key].text }];
+                addTextDefinition(tgt, textObjects, object[key].options, false);
+            }
             else if (MASTER_OBJECTS[key] && key === 'placeholder') {
                 // TODO: 20180820: Check for existing `name`?
                 object[key].options.placeholder = object[key].options.name;
@@ -6713,7 +6715,7 @@ function makeXmlViewProps() {
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-var VERSION = '3.13.0-beta.0-20230416-2140';
+var VERSION = '3.13.5';
 var PptxGenJS = /** @class */ (function () {
     function PptxGenJS() {
         var _this = this;
