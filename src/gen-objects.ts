@@ -1001,101 +1001,95 @@ export function addTextDefinition (target: PresSlide, text: TextProps[], opts: T
 		options: opts || {},
 	}
 
-	function cleanOpts (itemOpts: ObjectOptions): TextPropsOptions {
+	function cleanOpts(itemOpts: ObjectOptions): TextPropsOptions {
 		// STEP 1: Set some options
 		{
 			// A.1: Color (placeholders should inherit their colors or override them, so don't default them)
 			if (!itemOpts.placeholder) {
-				itemOpts.color = itemOpts.color || newObject.options.color || target.color || DEF_FONT_COLOR
+				itemOpts.color = itemOpts.color || newObject.options.color || target.color || DEF_FONT_COLOR;
 			}
-
+	
 			// A.2: Placeholder should inherit their bullets or override them, so don't default them
 			if (itemOpts.placeholder || isPlaceholder) {
-				itemOpts.bullet = itemOpts.bullet || false
+				itemOpts.bullet = itemOpts.bullet || false;
 			}
-
-			// A.3: Text targeting a placeholder need to inherit the placeholders options (eg: margin, valign, etc.) (Issue #640)
+	
+			// A.3: Text targeting a placeholder needs to inherit the placeholder's options
 			if (itemOpts.placeholder && target._slideLayout && target._slideLayout._slideObjects) {
-				const placeHold = target._slideLayout._slideObjects.filter(
+				const placeHold = target._slideLayout._slideObjects.find(
 					item => item._type === 'placeholder' && item.options && item.options.placeholder && item.options.placeholder === itemOpts.placeholder
-				)[0]
-				if (placeHold?.options) itemOpts = { ...itemOpts, ...placeHold.options }
+				);
+				if (placeHold?.options) {
+					// Merge placeholder options without overwriting other existing options
+					itemOpts = { ...placeHold.options, ...itemOpts };
+				}
 			}
-
+	
 			// A.4: Other options
 			itemOpts.objectName = itemOpts.objectName
 				? encodeXmlEntities(itemOpts.objectName)
-				: `Text ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.text).length}`
-
-			// B:
+				: `Text ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.text).length}`;
+	
+			// B: Handle line options
 			if (itemOpts.shape === SHAPE_TYPE.LINE) {
-				// ShapeLineProps defaults
 				const newLineOpts: ShapeLineProps = {
-					type: itemOpts.line.type || 'solid',
-					color: itemOpts.line.color || DEF_SHAPE_LINE_COLOR,
-					transparency: itemOpts.line.transparency || 0,
-					width: itemOpts.line.width || 1,
-					dashType: itemOpts.line.dashType || 'solid',
-					beginArrowType: itemOpts.line.beginArrowType || null,
-					endArrowType: itemOpts.line.endArrowType || null,
-				}
-				if (typeof itemOpts.line === 'object') itemOpts.line = newLineOpts
-
-				// 3: Handle line (lots of deprecated opts)
-				if (typeof itemOpts.line === 'string') {
-					const tmpOpts = newLineOpts
-					if (typeof itemOpts.line === 'string') tmpOpts.color = itemOpts.line // @deprecated [remove in v4.0]
-					// tmpOpts.color = itemOpts.line!.toString() // @deprecated `itemOpts.line`:[string] (was line color)
-					itemOpts.line = tmpOpts
-				}
-				if (typeof itemOpts.lineSize === 'number') itemOpts.line.width = itemOpts.lineSize // @deprecated (part of `ShapeLineProps` now)
-				if (typeof itemOpts.lineDash === 'string') itemOpts.line.dashType = itemOpts.lineDash // @deprecated (part of `ShapeLineProps` now)
-				if (typeof itemOpts.lineHead === 'string') itemOpts.line.beginArrowType = itemOpts.lineHead // @deprecated (part of `ShapeLineProps` now)
-				if (typeof itemOpts.lineTail === 'string') itemOpts.line.endArrowType = itemOpts.lineTail // @deprecated (part of `ShapeLineProps` now)
+					type: itemOpts.line?.type || 'solid',
+					color: itemOpts.line?.color || DEF_SHAPE_LINE_COLOR,
+					transparency: itemOpts.line?.transparency || 0,
+					width: itemOpts.line?.width || 1,
+					dashType: itemOpts.line?.dashType || 'solid',
+					beginArrowType: itemOpts.line?.beginArrowType || null,
+					endArrowType: itemOpts.line?.endArrowType || null,
+				};
+				itemOpts.line = newLineOpts;
 			}
-
-			// C: Line opts
-			itemOpts.line = itemOpts.line || {}
-			itemOpts.lineSpacing = itemOpts.lineSpacing && !isNaN(itemOpts.lineSpacing) ? itemOpts.lineSpacing : null
-			itemOpts.lineSpacingMultiple = itemOpts.lineSpacingMultiple && !isNaN(itemOpts.lineSpacingMultiple) ? itemOpts.lineSpacingMultiple : null
-
-			// D: Transform text options to bodyProperties as thats how we build XML
-			itemOpts._bodyProp = itemOpts._bodyProp || {}
-			itemOpts._bodyProp.autoFit = itemOpts.autoFit || false // DEPRECATED: (3.3.0) If true, shape will collapse to text size (Fit To shape)
-			itemOpts._bodyProp.anchor = !itemOpts.placeholder ? TEXT_VALIGN.ctr : null // VALS: [t,ctr,b]
-			itemOpts._bodyProp.vert = itemOpts.vert || null // VALS: [eaVert,horz,mongolianVert,vert,vert270,wordArtVert,wordArtVertRtl]
-			itemOpts._bodyProp.wrap = typeof itemOpts.wrap === 'boolean' ? itemOpts.wrap : true
-
-			// E: Inset
-			// @deprecated 3.10.0 (`inset` - use `margin`)
-			if ((itemOpts.inset && !isNaN(Number(itemOpts.inset))) || itemOpts.inset === 0) {
-				itemOpts._bodyProp.lIns = inch2Emu(itemOpts.inset)
-				itemOpts._bodyProp.rIns = inch2Emu(itemOpts.inset)
-				itemOpts._bodyProp.tIns = inch2Emu(itemOpts.inset)
-				itemOpts._bodyProp.bIns = inch2Emu(itemOpts.inset)
+	
+			// C: Line spacing
+			itemOpts.lineSpacing = itemOpts.lineSpacing && !isNaN(itemOpts.lineSpacing) ? itemOpts.lineSpacing : null;
+			itemOpts.lineSpacingMultiple = itemOpts.lineSpacingMultiple && !isNaN(itemOpts.lineSpacingMultiple) ? itemOpts.lineSpacingMultiple : null;
+	
+			// D: Transform text options to bodyProperties as that's how we build XML
+			itemOpts._bodyProp = itemOpts._bodyProp || {};
+			itemOpts._bodyProp.autoFit = itemOpts.autoFit || false;
+			itemOpts._bodyProp.anchor = !itemOpts.placeholder ? TEXT_VALIGN.ctr : itemOpts._bodyProp.anchor;  // Only set if not already defined
+			itemOpts._bodyProp.vert = itemOpts.vert || null;
+			itemOpts._bodyProp.wrap = typeof itemOpts.wrap === 'boolean' ? itemOpts.wrap : true;
+	
+			// E: Handle inset (deprecated) by transforming it into margin equivalents
+			if (itemOpts.inset !== undefined && !isNaN(Number(itemOpts.inset))) {
+				const insetValue = inch2Emu(itemOpts.inset);
+				itemOpts._bodyProp.lIns = insetValue;
+				itemOpts._bodyProp.rIns = insetValue;
+				itemOpts._bodyProp.tIns = insetValue;
+				itemOpts._bodyProp.bIns = insetValue;
 			}
-
-			// F: Transform @deprecated props
-			if (typeof itemOpts.underline === 'boolean' && itemOpts.underline === true) itemOpts.underline = { style: 'sng' }
+	
+			// F: Transform deprecated underline prop to a style object
+			if (typeof itemOpts.underline === 'boolean' && itemOpts.underline === true) {
+				itemOpts.underline = { style: 'sng' };
+			}
 		}
-
-		// STEP 2: Transform `align`/`valign` to XML values, store in _bodyProp for XML gen
+	
+		// STEP 2: Transform `align`/`valign` to XML values, store in _bodyProp for XML generation
 		{
-			if ((itemOpts.align || '').toLowerCase().indexOf('c') === 0) itemOpts._bodyProp.align = TEXT_HALIGN.center
-			else if ((itemOpts.align || '').toLowerCase().indexOf('l') === 0) itemOpts._bodyProp.align = TEXT_HALIGN.left
-			else if ((itemOpts.align || '').toLowerCase().indexOf('r') === 0) itemOpts._bodyProp.align = TEXT_HALIGN.right
-			else if ((itemOpts.align || '').toLowerCase().indexOf('j') === 0) itemOpts._bodyProp.align = TEXT_HALIGN.justify
-
-			if ((itemOpts.valign || '').toLowerCase().indexOf('b') === 0) itemOpts._bodyProp.anchor = TEXT_VALIGN.b
-			else if ((itemOpts.valign || '').toLowerCase().indexOf('m') === 0) itemOpts._bodyProp.anchor = TEXT_VALIGN.ctr
-			else if ((itemOpts.valign || '').toLowerCase().indexOf('t') === 0) itemOpts._bodyProp.anchor = TEXT_VALIGN.t
+			const align = (itemOpts.align || '').toLowerCase();
+			if (align.startsWith('c')) itemOpts._bodyProp.align = TEXT_HALIGN.center;
+			else if (align.startsWith('l')) itemOpts._bodyProp.align = TEXT_HALIGN.left;
+			else if (align.startsWith('r')) itemOpts._bodyProp.align = TEXT_HALIGN.right;
+			else if (align.startsWith('j')) itemOpts._bodyProp.align = TEXT_HALIGN.justify;
+	
+			const valign = (itemOpts.valign || '').toLowerCase();
+			if (valign.startsWith('b')) itemOpts._bodyProp.anchor = TEXT_VALIGN.b;
+			else if (valign.startsWith('m')) itemOpts._bodyProp.anchor = TEXT_VALIGN.ctr;
+			else if (valign.startsWith('t')) itemOpts._bodyProp.anchor = TEXT_VALIGN.t;
 		}
-
-		// STEP 3: ROBUST: Set rational values for some shadow props if needed
-		correctShadowOptions(itemOpts.shadow)
-
-		return itemOpts
+	
+		// STEP 3: Ensure shadow options are rational and correctly set
+		correctShadowOptions(itemOpts.shadow);
+	
+		return itemOpts;
 	}
+	
 
 	// STEP 1: Create/Clean object options
 	newObject.options = cleanOpts(newObject.options)

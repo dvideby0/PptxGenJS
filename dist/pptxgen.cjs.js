@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.6 @ 2024-08-31T06:06:04.961Z */
+/* PptxGenJS 3.13.7 @ 2024-08-31T06:21:03.708Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2586,6 +2586,7 @@ function addTextDefinition(target, text, opts, isPlaceholder) {
         options: opts || {},
     };
     function cleanOpts(itemOpts) {
+        var _a, _b, _c, _d, _e, _f, _g;
         // STEP 1: Set some options
         {
             // A.1: Color (placeholders should inherit their colors or override them, so don't default them)
@@ -2596,87 +2597,73 @@ function addTextDefinition(target, text, opts, isPlaceholder) {
             if (itemOpts.placeholder || isPlaceholder) {
                 itemOpts.bullet = itemOpts.bullet || false;
             }
-            // A.3: Text targeting a placeholder need to inherit the placeholders options (eg: margin, valign, etc.) (Issue #640)
+            // A.3: Text targeting a placeholder needs to inherit the placeholder's options
             if (itemOpts.placeholder && target._slideLayout && target._slideLayout._slideObjects) {
-                var placeHold = target._slideLayout._slideObjects.filter(function (item) { return item._type === 'placeholder' && item.options && item.options.placeholder && item.options.placeholder === itemOpts.placeholder; })[0];
-                if (placeHold === null || placeHold === void 0 ? void 0 : placeHold.options)
-                    itemOpts = __assign(__assign({}, itemOpts), placeHold.options);
+                var placeHold = target._slideLayout._slideObjects.find(function (item) { return item._type === 'placeholder' && item.options && item.options.placeholder && item.options.placeholder === itemOpts.placeholder; });
+                if (placeHold === null || placeHold === void 0 ? void 0 : placeHold.options) {
+                    // Merge placeholder options without overwriting other existing options
+                    itemOpts = __assign(__assign({}, placeHold.options), itemOpts);
+                }
             }
             // A.4: Other options
             itemOpts.objectName = itemOpts.objectName
                 ? encodeXmlEntities(itemOpts.objectName)
                 : "Text ".concat(target._slideObjects.filter(function (obj) { return obj._type === SLIDE_OBJECT_TYPES.text; }).length);
-            // B:
+            // B: Handle line options
             if (itemOpts.shape === SHAPE_TYPE.LINE) {
-                // ShapeLineProps defaults
                 var newLineOpts = {
-                    type: itemOpts.line.type || 'solid',
-                    color: itemOpts.line.color || DEF_SHAPE_LINE_COLOR,
-                    transparency: itemOpts.line.transparency || 0,
-                    width: itemOpts.line.width || 1,
-                    dashType: itemOpts.line.dashType || 'solid',
-                    beginArrowType: itemOpts.line.beginArrowType || null,
-                    endArrowType: itemOpts.line.endArrowType || null,
+                    type: ((_a = itemOpts.line) === null || _a === void 0 ? void 0 : _a.type) || 'solid',
+                    color: ((_b = itemOpts.line) === null || _b === void 0 ? void 0 : _b.color) || DEF_SHAPE_LINE_COLOR,
+                    transparency: ((_c = itemOpts.line) === null || _c === void 0 ? void 0 : _c.transparency) || 0,
+                    width: ((_d = itemOpts.line) === null || _d === void 0 ? void 0 : _d.width) || 1,
+                    dashType: ((_e = itemOpts.line) === null || _e === void 0 ? void 0 : _e.dashType) || 'solid',
+                    beginArrowType: ((_f = itemOpts.line) === null || _f === void 0 ? void 0 : _f.beginArrowType) || null,
+                    endArrowType: ((_g = itemOpts.line) === null || _g === void 0 ? void 0 : _g.endArrowType) || null,
                 };
-                if (typeof itemOpts.line === 'object')
-                    itemOpts.line = newLineOpts;
-                // 3: Handle line (lots of deprecated opts)
-                if (typeof itemOpts.line === 'string') {
-                    var tmpOpts = newLineOpts;
-                    if (typeof itemOpts.line === 'string')
-                        tmpOpts.color = itemOpts.line; // @deprecated [remove in v4.0]
-                    // tmpOpts.color = itemOpts.line!.toString() // @deprecated `itemOpts.line`:[string] (was line color)
-                    itemOpts.line = tmpOpts;
-                }
-                if (typeof itemOpts.lineSize === 'number')
-                    itemOpts.line.width = itemOpts.lineSize; // @deprecated (part of `ShapeLineProps` now)
-                if (typeof itemOpts.lineDash === 'string')
-                    itemOpts.line.dashType = itemOpts.lineDash; // @deprecated (part of `ShapeLineProps` now)
-                if (typeof itemOpts.lineHead === 'string')
-                    itemOpts.line.beginArrowType = itemOpts.lineHead; // @deprecated (part of `ShapeLineProps` now)
-                if (typeof itemOpts.lineTail === 'string')
-                    itemOpts.line.endArrowType = itemOpts.lineTail; // @deprecated (part of `ShapeLineProps` now)
+                itemOpts.line = newLineOpts;
             }
-            // C: Line opts
-            itemOpts.line = itemOpts.line || {};
+            // C: Line spacing
             itemOpts.lineSpacing = itemOpts.lineSpacing && !isNaN(itemOpts.lineSpacing) ? itemOpts.lineSpacing : null;
             itemOpts.lineSpacingMultiple = itemOpts.lineSpacingMultiple && !isNaN(itemOpts.lineSpacingMultiple) ? itemOpts.lineSpacingMultiple : null;
-            // D: Transform text options to bodyProperties as thats how we build XML
+            // D: Transform text options to bodyProperties as that's how we build XML
             itemOpts._bodyProp = itemOpts._bodyProp || {};
-            itemOpts._bodyProp.autoFit = itemOpts.autoFit || false; // DEPRECATED: (3.3.0) If true, shape will collapse to text size (Fit To shape)
-            itemOpts._bodyProp.anchor = !itemOpts.placeholder ? TEXT_VALIGN.ctr : null; // VALS: [t,ctr,b]
-            itemOpts._bodyProp.vert = itemOpts.vert || null; // VALS: [eaVert,horz,mongolianVert,vert,vert270,wordArtVert,wordArtVertRtl]
+            itemOpts._bodyProp.autoFit = itemOpts.autoFit || false;
+            itemOpts._bodyProp.anchor = !itemOpts.placeholder ? TEXT_VALIGN.ctr : itemOpts._bodyProp.anchor; // Only set if not already defined
+            itemOpts._bodyProp.vert = itemOpts.vert || null;
             itemOpts._bodyProp.wrap = typeof itemOpts.wrap === 'boolean' ? itemOpts.wrap : true;
-            // E: Inset
-            // @deprecated 3.10.0 (`inset` - use `margin`)
-            if ((itemOpts.inset && !isNaN(Number(itemOpts.inset))) || itemOpts.inset === 0) {
-                itemOpts._bodyProp.lIns = inch2Emu(itemOpts.inset);
-                itemOpts._bodyProp.rIns = inch2Emu(itemOpts.inset);
-                itemOpts._bodyProp.tIns = inch2Emu(itemOpts.inset);
-                itemOpts._bodyProp.bIns = inch2Emu(itemOpts.inset);
+            // E: Handle inset (deprecated) by transforming it into margin equivalents
+            if (itemOpts.inset !== undefined && !isNaN(Number(itemOpts.inset))) {
+                var insetValue = inch2Emu(itemOpts.inset);
+                itemOpts._bodyProp.lIns = insetValue;
+                itemOpts._bodyProp.rIns = insetValue;
+                itemOpts._bodyProp.tIns = insetValue;
+                itemOpts._bodyProp.bIns = insetValue;
             }
-            // F: Transform @deprecated props
-            if (typeof itemOpts.underline === 'boolean' && itemOpts.underline === true)
+            // F: Transform deprecated underline prop to a style object
+            if (typeof itemOpts.underline === 'boolean' && itemOpts.underline === true) {
                 itemOpts.underline = { style: 'sng' };
+            }
         }
-        // STEP 2: Transform `align`/`valign` to XML values, store in _bodyProp for XML gen
+        // STEP 2: Transform `align`/`valign` to XML values, store in _bodyProp for XML generation
         {
-            if ((itemOpts.align || '').toLowerCase().indexOf('c') === 0)
+            var align = (itemOpts.align || '').toLowerCase();
+            if (align.startsWith('c'))
                 itemOpts._bodyProp.align = TEXT_HALIGN.center;
-            else if ((itemOpts.align || '').toLowerCase().indexOf('l') === 0)
+            else if (align.startsWith('l'))
                 itemOpts._bodyProp.align = TEXT_HALIGN.left;
-            else if ((itemOpts.align || '').toLowerCase().indexOf('r') === 0)
+            else if (align.startsWith('r'))
                 itemOpts._bodyProp.align = TEXT_HALIGN.right;
-            else if ((itemOpts.align || '').toLowerCase().indexOf('j') === 0)
+            else if (align.startsWith('j'))
                 itemOpts._bodyProp.align = TEXT_HALIGN.justify;
-            if ((itemOpts.valign || '').toLowerCase().indexOf('b') === 0)
+            var valign = (itemOpts.valign || '').toLowerCase();
+            if (valign.startsWith('b'))
                 itemOpts._bodyProp.anchor = TEXT_VALIGN.b;
-            else if ((itemOpts.valign || '').toLowerCase().indexOf('m') === 0)
+            else if (valign.startsWith('m'))
                 itemOpts._bodyProp.anchor = TEXT_VALIGN.ctr;
-            else if ((itemOpts.valign || '').toLowerCase().indexOf('t') === 0)
+            else if (valign.startsWith('t'))
                 itemOpts._bodyProp.anchor = TEXT_VALIGN.t;
         }
-        // STEP 3: ROBUST: Set rational values for some shadow props if needed
+        // STEP 3: Ensure shadow options are rational and correctly set
         correctShadowOptions(itemOpts.shadow);
         return itemOpts;
     }
@@ -6717,7 +6704,7 @@ function makeXmlViewProps() {
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-var VERSION = '3.13.6';
+var VERSION = '3.13.7';
 var PptxGenJS = /** @class */ (function () {
     function PptxGenJS() {
         var _this = this;
