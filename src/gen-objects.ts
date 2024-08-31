@@ -72,8 +72,10 @@ export function createSlideMaster (props: SlideMasterProps, target: SlideLayout)
 			else if (MASTER_OBJECTS[key] && key === 'line') addShapeDefinition(tgt, SHAPE_TYPE.LINE, object[key])
 			else if (MASTER_OBJECTS[key] && key === 'rect') addShapeDefinition(tgt, SHAPE_TYPE.RECTANGLE, object[key])
 			else if (MASTER_OBJECTS[key] && key === 'text') {
-    				const textObjects = Array.isArray(object[key]) ? object[key] : [{ text: object[key].text }];
-    				addTextDefinition(tgt, textObjects, object[key].options, false);
+				const textParam = typeof object[key].text === 'string' || typeof object[key].text === 'number'
+					? [{ text: object[key].text }]
+					: object[key].text
+				addTextDefinition(tgt, textParam, object[key].options, false)
 			}
 			else if (MASTER_OBJECTS[key] && key === 'placeholder') {
 				// TODO: 20180820: Check for existing `name`?
