@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.7 @ 2024-09-13T18:56:22.783Z */
+/* PptxGenJS 3.13.7 @ 2024-09-13T19:59:28.816Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -1673,7 +1673,7 @@ function createSlideMaster(props, target) {
                 console.log('table', object[key]);
                 var tableRows = object[key].rows;
                 var tableOptions = object[key].options || {};
-                addTableDefinitionToMaster(tgt, tableRows, tableOptions);
+                addTableDefinition(tgt, tableRows, tableOptions, null, tgt._presLayout, null, null, true);
             }
             else if (MASTER_OBJECTS[key] && key === 'placeholder') {
                 // TODO: 20180820: Check for existing `name`?
@@ -2323,8 +2323,16 @@ function addShapeDefinition(target, shapeName, opts) {
  * @param {Function} addSlide - method
  * @param {Function} getSlide - method
  */
-function addTableDefinition(target, tableRows, options, slideLayout, presLayout, addSlide, getSlide) {
-    var slides = [target]; // Create array of Slides as more may be added by auto-paging
+function addTableDefinition(target, tableRows, options, slideLayout, presLayout, addSlide, getSlide, isLayout) {
+    // if not a layout, then create slides
+    if (!isLayout) {
+        if (!addSlide)
+            throw new Error('addTable: `addSlide` method not provided!');
+        if (!getSlide)
+            throw new Error('addTable: `getSlide` method not provided!');
+    }
+    var slides = [target];
+    //const slides: PresSlide[] = [target] // Create array of Slides as more may be added by auto-paging
     var opt = options && typeof options === 'object' ? options : {};
     opt.objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : "Table ".concat(target._slideObjects.filter(function (obj) { return obj._type === SLIDE_OBJECT_TYPES.table; }).length);
     // STEP 1: REALITY-CHECK
@@ -2575,147 +2583,6 @@ function addTableDefinition(target, tableRows, options, slideLayout, presLayout,
         });
     }
     return newAutoPagedSlides;
-}
-function addTableDefinitionToMaster(target, tableRows, options) {
-    var opt = options && typeof options === 'object' ? options : {};
-    opt.objectName = opt.objectName
-        ? encodeXmlEntities(opt.objectName)
-        : "Table ".concat(target._slideObjects.filter(function (obj) { return obj._type === SLIDE_OBJECT_TYPES.table; }).length);
-    // STEP 1: Reality-check
-    {
-        // A: Check for empty or invalid tableRows
-        if (!Array.isArray(tableRows) || tableRows.length === 0) {
-            throw new Error("addTableDefinitionToMaster: Array of rows expected! EX: 'slide.addTable( [rows], {options} );'");
-        }
-        // B: Check for non-well-formatted array
-        if (!Array.isArray(tableRows[0])) {
-            throw new Error("addTableDefinitionToMaster: 'rows' should be an array of cells! EX: 'slide.addTable( [ ['A'], ['B'] ] );'");
-        }
-    }
-    // STEP 2: Transform `tableRows` into well-formatted TableCell's
-    var arrRows = [];
-    tableRows.forEach(function (row) {
-        var newRow = [];
-        if (Array.isArray(row)) {
-            row.forEach(function (cell) {
-                var newCell = {
-                    _type: SLIDE_OBJECT_TYPES.tablecell,
-                    text: '',
-                    options: {},
-                };
-                if (typeof cell === 'string' || typeof cell === 'number') {
-                    newCell.text = cell.toString();
-                }
-                else if (typeof cell === 'object') {
-                    if (typeof cell.text === 'string' || typeof cell.text === 'number') {
-                        newCell.text = cell.text.toString();
-                    }
-                    else if (cell.text) {
-                        newCell.text = cell.text;
-                    }
-                    newCell.options = cell.options || {};
-                }
-                // Set cell borders
-                newCell.options.border =
-                    newCell.options.border ||
-                        opt.border ||
-                        [{ type: 'none' }, { type: 'none' }, { type: 'none' }, { type: 'none' }];
-                var cellBorder = newCell.options.border;
-                if (!Array.isArray(cellBorder) && typeof cellBorder === 'object') {
-                    newCell.options.border = [cellBorder, cellBorder, cellBorder, cellBorder];
-                }
-                [0, 1, 2, 3].forEach(function (idx) {
-                    if (!newCell.options.border[idx])
-                        newCell.options.border[idx] = { type: 'none' };
-                    newCell.options.border[idx] = {
-                        type: newCell.options.border[idx].type || DEF_CELL_BORDER.type,
-                        color: newCell.options.border[idx].color || DEF_CELL_BORDER.color,
-                        pt: typeof newCell.options.border[idx].pt === 'number'
-                            ? newCell.options.border[idx].pt
-                            : DEF_CELL_BORDER.pt,
-                    };
-                });
-                newRow.push(newCell);
-            });
-        }
-        else {
-            console.warn('addTableDefinitionToMaster: Each row should be an array of cells. Skipping invalid row:', row);
-        }
-        arrRows.push(newRow);
-    });
-    // STEP 3: Set options
-    opt.x = getSmartParseNumber(opt.x || 0.5, 'X', target._presLayout);
-    opt.y = getSmartParseNumber(opt.y || 0.5, 'Y', target._presLayout);
-    if (opt.h)
-        opt.h = getSmartParseNumber(opt.h, 'Y', target._presLayout);
-    opt.fontSize = opt.fontSize || DEF_FONT_SIZE;
-    opt.margin =
-        typeof opt.margin === 'number'
-            ? [opt.margin, opt.margin, opt.margin, opt.margin]
-            : opt.margin || DEF_CELL_MARGIN_IN;
-    opt.color = opt.color || DEF_FONT_COLOR;
-    // Get presentation layout from target (slide master)
-    var presLayout = target._presLayout || { width: 10, height: 7.5 }; // Default to standard size if not available
-    // Set/Calc table width
-    var arrTableMargin = DEF_SLIDE_MARGIN_IN;
-    if (target && target._margin !== undefined) {
-        if (Array.isArray(target._margin)) {
-            arrTableMargin = target._margin;
-        }
-        else if (!isNaN(Number(target._margin))) {
-            arrTableMargin = [
-                Number(target._margin),
-                Number(target._margin),
-                Number(target._margin),
-                Number(target._margin),
-            ];
-        }
-    }
-    // Calculate table width
-    if (opt.colW) {
-        var firstRowColCnt = arrRows[0].reduce(function (totalLen, c) {
-            totalLen += c.options.colspan || 1;
-            return totalLen;
-        }, 0);
-        if (typeof opt.colW === 'number' || typeof opt.colW === 'string') {
-            opt.w = Number(opt.colW) * firstRowColCnt;
-            opt.colW = null;
-        }
-        else if (Array.isArray(opt.colW) && opt.colW.length === firstRowColCnt) {
-            opt.w = opt.colW.reduce(function (sum, colWidth) { return sum + Number(colWidth); }, 0);
-        }
-        else {
-            console.warn('addTableDefinitionToMaster: colW length does not match number of columns. Defaulting to evenly distributed column widths.');
-            opt.colW = null;
-        }
-    }
-    if (!opt.w) {
-        opt.w =
-            presLayout.width - (arrTableMargin[1] + arrTableMargin[3]); // presLayout.width is in inches
-    }
-    // STEP 4: Convert units to EMU now
-    opt.x = inch2Emu(opt.x);
-    opt.y = inch2Emu(opt.y);
-    opt.w = inch2Emu(opt.w);
-    if (opt.h)
-        opt.h = inch2Emu(opt.h);
-    // STEP 5: Prepare cells for master slide
-    arrRows.forEach(function (row) {
-        row.forEach(function (cell) {
-            cell._type = SLIDE_OBJECT_TYPES.tablecell;
-            if (typeof cell.text === 'number')
-                cell.text = cell.text.toString();
-            else if (!cell.text)
-                cell.text = '';
-            cell.options = cell.options || {};
-        });
-    });
-    // STEP 6: Add the table object to the slide master
-    target._slideObjects.push({
-        _type: SLIDE_OBJECT_TYPES.table,
-        arrTabRows: arrRows,
-        options: __assign({}, opt),
-    });
 }
 /**
  * Adds a text object to a slide definition.
