@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.7 @ 2024-09-13T16:30:23.311Z */
+/* PptxGenJS 3.13.7 @ 2024-09-13T16:59:34.798Z */
 import JSZip from 'jszip';
 
 /******************************************************************************
@@ -1666,11 +1666,7 @@ function createSlideMaster(props, target) {
             else if (MASTER_OBJECTS[key] && key === 'table') {
                 var tableRows = object[key].rows;
                 var options = object[key].options;
-                var slideLayout = target;
-                var presLayout = target._presLayout; // Assuming target has _presLayout property
-                var addSlide = null;
-                var getSlide = null;
-                addTableDefinition(target, tableRows, options, true, slideLayout, presLayout, addSlide, getSlide);
+                addTableDefinition(target, tableRows, options, true);
             }
             else if (MASTER_OBJECTS[key] && key === 'placeholder') {
                 // TODO: 20180820: Check for existing `name`?

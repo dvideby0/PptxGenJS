@@ -80,11 +80,7 @@ export function createSlideMaster (props: SlideMasterProps, target: SlideLayout)
 			else if (MASTER_OBJECTS[key] && key === 'table') {
 				const tableRows = object[key].rows;
 				const options = object[key].options;
-				const slideLayout = target as SlideLayout;
-				const presLayout = target._presLayout; // Assuming target has _presLayout property
-				const addSlide = null;
-				const getSlide = null;
-				addTableDefinition(target, tableRows, options, true, slideLayout, presLayout, addSlide, getSlide);
+				addTableDefinition(target, tableRows, options, true)
 			}
 			else if (MASTER_OBJECTS[key] && key === 'placeholder') {
 				// TODO: 20180820: Check for existing `name`?
