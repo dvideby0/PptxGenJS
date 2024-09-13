@@ -81,7 +81,7 @@ export function createSlideMaster (props: SlideMasterProps, target: SlideLayout)
 				console.log('table', object[key])
 				const tableRows: TableRow[] = object[key].rows
 				const tableOptions: TableProps = object[key].options || {}
-				addTableDefinitionToMaster(tgt, tableRows, tableOptions)
+				addTableDefinition(tgt, tableRows, tableOptions, null, tgt._presLayout, null, null, true)
 			}
 			else if (MASTER_OBJECTS[key] && key === 'placeholder') {
 				// TODO: 20180820: Check for existing `name`?
@@ -739,10 +739,18 @@ export function addTableDefinition (
 	options: TableProps,
 	slideLayout: SlideLayout,
 	presLayout: PresLayout,
-	addSlide: (options?: AddSlideProps) => PresSlide,
-	getSlide: (slideNumber: number) => PresSlide
+	addSlide?: (options?: AddSlideProps) => PresSlide,
+	getSlide?: (slideNumber: number) => PresSlide,
+	isLayout?: boolean
 ): PresSlide[] {
-	const slides: PresSlide[] = [target] // Create array of Slides as more may be added by auto-paging
+	// if not a layout, then create slides
+	if (!isLayout) {
+		if (!addSlide) throw new Error('addTable: `addSlide` method not provided!')
+		if (!getSlide) throw new Error('addTable: `getSlide` method not provided!')
+	}
+	let slides = [target]
+
+	//const slides: PresSlide[] = [target] // Create array of Slides as more may be added by auto-paging
 	const opt: TableProps = options && typeof options === 'object' ? options : {}
 	opt.objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : `Table ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.table).length}`
 
