@@ -228,7 +228,7 @@ export default class Slide {
 	 */
 	addTable (tableRows: TableRow[], options?: TableProps): Slide {
 		// FUTURE: we pass `this` - we dont need to pass layouts - they can be read from this!
-		this._newAutoPagedSlides = genObj.addTableDefinition(this, tableRows, options, false, this._slideLayout, this._presLayout, this.addSlide, this.getSlide)
+		this._newAutoPagedSlides = genObj.addTableDefinition(this, tableRows, options, this._slideLayout, this._presLayout, this.addSlide, this.getSlide)
 		return this
 	}
 
