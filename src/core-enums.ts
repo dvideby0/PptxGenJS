@@ -726,6 +726,7 @@ export enum MASTER_OBJECTS {
 	'rect' = 'rect',
 	'text' = 'text',
 	'placeholder' = 'placeholder',
+	'table' = 'table',
 }
 
 export enum SLIDE_OBJECT_TYPES {

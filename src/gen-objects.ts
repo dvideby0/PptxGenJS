@@ -78,10 +78,9 @@ export function createSlideMaster (props: SlideMasterProps, target: SlideLayout)
 			}
 			// handle tables
 			else if (MASTER_OBJECTS[key] && key === 'table') {
-				console.log('table', object[key])
 				const tableRows: TableRow[] = object[key].rows
 				const tableOptions: TableProps = object[key].options || {}
-				addTableDefinition(tgt, tableRows, tableOptions, null, tgt._presLayout, null, null, true)
+				addTableDefinitionToMaster(tgt, tableRows, tableOptions)
 			}
 			else if (MASTER_OBJECTS[key] && key === 'placeholder') {
 				// TODO: 20180820: Check for existing `name`?
@@ -739,18 +738,10 @@ export function addTableDefinition (
 	options: TableProps,
 	slideLayout: SlideLayout,
 	presLayout: PresLayout,
-	addSlide?: (options?: AddSlideProps) => PresSlide,
-	getSlide?: (slideNumber: number) => PresSlide,
-	isLayout?: boolean
+	addSlide: (options?: AddSlideProps) => PresSlide,
+	getSlide: (slideNumber: number) => PresSlide
 ): PresSlide[] {
-	// if not a layout, then create slides
-	if (!isLayout) {
-		if (!addSlide) throw new Error('addTable: `addSlide` method not provided!')
-		if (!getSlide) throw new Error('addTable: `getSlide` method not provided!')
-	}
-	let slides = [target]
-
-	//const slides: PresSlide[] = [target] // Create array of Slides as more may be added by auto-paging
+	const slides: PresSlide[] = [target] // Create array of Slides as more may be added by auto-paging
 	const opt: TableProps = options && typeof options === 'object' ? options : {}
 	opt.objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : `Table ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.table).length}`
 
@@ -1118,6 +1109,7 @@ export function addTableDefinitionToMaster(
   
 	// Calculate table width
 	if (opt.colW) {
+		console.log(JSON.stringify(opt.colW));
 	  const firstRowColCnt = arrRows[0].reduce((totalLen, c) => {
 		totalLen += c.options.colspan || 1;
 		return totalLen;
@@ -1129,10 +1121,12 @@ export function addTableDefinitionToMaster(
 	  } else if (Array.isArray(opt.colW) && opt.colW.length === firstRowColCnt) {
 		opt.w = opt.colW.reduce((sum, colWidth) => sum + Number(colWidth), 0);
 	  } else {
+		console.log('First Row Col Cnt:', firstRowColCnt);
+		console.log('ColW Count:', opt.colW.length);
 		console.warn(
 		  'addTableDefinitionToMaster: colW length does not match number of columns. Defaulting to evenly distributed column widths.'
 		);
-		opt.colW = null;
+		opt.w = opt.colW.reduce((sum, colWidth) => sum + Number(colWidth), 0);
 	  }
 	}
   
