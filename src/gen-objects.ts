@@ -1109,7 +1109,6 @@ export function addTableDefinitionToMaster(
   
 	// Calculate table width
 	if (opt.colW) {
-		console.log(JSON.stringify(opt.colW));
 	  const firstRowColCnt = arrRows[0].reduce((totalLen, c) => {
 		totalLen += c.options.colspan || 1;
 		return totalLen;
@@ -1121,8 +1120,6 @@ export function addTableDefinitionToMaster(
 	  } else if (Array.isArray(opt.colW) && opt.colW.length === firstRowColCnt) {
 		opt.w = opt.colW.reduce((sum, colWidth) => sum + Number(colWidth), 0);
 	  } else {
-		console.log('First Row Col Cnt:', firstRowColCnt);
-		console.log('ColW Count:', opt.colW.length);
 		console.warn(
 		  'addTableDefinitionToMaster: colW length does not match number of columns. Defaulting to evenly distributed column widths.'
 		);

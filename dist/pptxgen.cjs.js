@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.7 @ 2024-09-14T14:50:20.219Z */
+/* PptxGenJS 3.13.7 @ 2024-11-19T19:53:06.844Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2673,7 +2673,6 @@ function addTableDefinitionToMaster(target, tableRows, options) {
     }
     // Calculate table width
     if (opt.colW) {
-        console.log(JSON.stringify(opt.colW));
         var firstRowColCnt = arrRows[0].reduce(function (totalLen, c) {
             totalLen += c.options.colspan || 1;
             return totalLen;
@@ -2686,8 +2685,6 @@ function addTableDefinitionToMaster(target, tableRows, options) {
             opt.w = opt.colW.reduce(function (sum, colWidth) { return sum + Number(colWidth); }, 0);
         }
         else {
-            console.log('First Row Col Cnt:', firstRowColCnt);
-            console.log('ColW Count:', opt.colW.length);
             console.warn('addTableDefinitionToMaster: colW length does not match number of columns. Defaulting to evenly distributed column widths.');
             opt.w = opt.colW.reduce(function (sum, colWidth) { return sum + Number(colWidth); }, 0);
         }
@@ -6448,6 +6445,10 @@ function genXmlPlaceholder(placeholderObj) {
     var placeholderIdx = ((_a = placeholderObj.options) === null || _a === void 0 ? void 0 : _a._placeholderIdx) ? placeholderObj.options._placeholderIdx : '';
     var placeholderTyp = ((_b = placeholderObj.options) === null || _b === void 0 ? void 0 : _b._placeholderType) ? placeholderObj.options._placeholderType : '';
     var placeholderType = placeholderTyp && PLACEHOLDER_TYPES[placeholderTyp] ? (PLACEHOLDER_TYPES[placeholderTyp]).toString() : '';
+    if (placeholderType === 'pic') {
+        // return a picture placeholder PP_PLACEHOLDER_TYPE.PICTURE: 18
+        return "<p:ph idx=\"".concat(placeholderIdx, "\" type=\"pic\"/>");
+    }
     return "<p:ph\n\t\t".concat(placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : '', "\n\t\t").concat(placeholderType && PLACEHOLDER_TYPES[placeholderType] ? " type=\"".concat(placeholderType, "\"") : '', "\n\t\t").concat(placeholderObj.text && placeholderObj.text.length > 0 ? ' hasCustomPrompt="1"' : '', "\n\t\t/>");
 }
 // XML-GEN: First 6 functions create the base /ppt files

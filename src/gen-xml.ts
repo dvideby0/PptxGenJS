@@ -1348,6 +1348,12 @@ export function genXmlPlaceholder (placeholderObj: ISlideObject): string {
 	const placeholderTyp = placeholderObj.options?._placeholderType ? placeholderObj.options._placeholderType : ''
 	const placeholderType: string = placeholderTyp && PLACEHOLDER_TYPES[placeholderTyp] ? (PLACEHOLDER_TYPES[placeholderTyp]).toString() : ''
 
+	if (placeholderType === 'pic') {
+		// return a picture placeholder PP_PLACEHOLDER_TYPE.PICTURE: 18
+		return `<p:ph idx="${placeholderIdx}" type="pic"/>`
+
+	}
+	
 	return `<p:ph
 		${placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : ''}
 		${placeholderType && PLACEHOLDER_TYPES[placeholderType] ? ` type="${placeholderType}"` : ''}
