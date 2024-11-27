@@ -744,7 +744,7 @@ export enum SLIDE_OBJECT_TYPES {
 export enum PLACEHOLDER_TYPES {
 	'title' = 'title',
 	'body' = 'body',
-	'subtitle' = 'subitle',
+	'subtitle' = 'subtitle',
 	'image' = 'pic',
 	'chart' = 'chart',
 	'table' = 'tbl',
