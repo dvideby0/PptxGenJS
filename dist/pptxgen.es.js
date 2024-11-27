@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.7 @ 2024-11-27T16:46:01.771Z */
+/* PptxGenJS 3.13.7 @ 2024-11-27T16:57:00.726Z */
 import JSZip from 'jszip';
 
 /******************************************************************************
@@ -635,7 +635,7 @@ var PLACEHOLDER_TYPES;
 (function (PLACEHOLDER_TYPES) {
     PLACEHOLDER_TYPES["title"] = "title";
     PLACEHOLDER_TYPES["body"] = "body";
-    PLACEHOLDER_TYPES["subtitle"] = "subtitle";
+    PLACEHOLDER_TYPES["subtitle"] = "subTitle";
     PLACEHOLDER_TYPES["image"] = "pic";
     PLACEHOLDER_TYPES["chart"] = "chart";
     PLACEHOLDER_TYPES["table"] = "tbl";
