@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.7 @ 2024-11-27T16:57:00.720Z */
+/* PptxGenJS 3.13.7 @ 2024-11-27T17:00:13.323Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -641,7 +641,7 @@ var PLACEHOLDER_TYPES;
 (function (PLACEHOLDER_TYPES) {
     PLACEHOLDER_TYPES["title"] = "title";
     PLACEHOLDER_TYPES["body"] = "body";
-    PLACEHOLDER_TYPES["subtitle"] = "subTitle";
+    PLACEHOLDER_TYPES["subtitle"] = "subitle";
     PLACEHOLDER_TYPES["image"] = "pic";
     PLACEHOLDER_TYPES["chart"] = "chart";
     PLACEHOLDER_TYPES["table"] = "tbl";
@@ -6449,6 +6449,10 @@ function genXmlPlaceholder(placeholderObj) {
     if (placeholderType === 'pic') {
         // return a picture placeholder PP_PLACEHOLDER_TYPE.PICTURE: 18
         return "<p:ph idx=\"".concat(placeholderIdx, "\" type=\"pic\"/>");
+    }
+    if (placeholderType === 'subtitle') {
+        // return a subtitle placeholder PP_PLACEHOLDER_TYPE.SUBTITLE: 1
+        return "<p:ph idx=\"".concat(placeholderIdx, "\" type=\"subTitle\"/>");
     }
     return "<p:ph\n\t\t".concat(placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : '', "\n\t\t").concat(placeholderType && PLACEHOLDER_TYPES[placeholderType] ? " type=\"".concat(placeholderType, "\"") : '', "\n\t\t").concat(placeholderObj.text && placeholderObj.text.length > 0 ? ' hasCustomPrompt="1"' : '', "\n\t\t/>");
 }

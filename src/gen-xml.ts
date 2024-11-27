@@ -1353,6 +1353,11 @@ export function genXmlPlaceholder (placeholderObj: ISlideObject): string {
 		return `<p:ph idx="${placeholderIdx}" type="pic"/>`
 
 	}
+
+	if (placeholderType === 'subtitle') {
+		// return a subtitle placeholder PP_PLACEHOLDER_TYPE.SUBTITLE: 1
+		return `<p:ph idx="${placeholderIdx}" type="subTitle"/>`
+	}
 	
 	return `<p:ph
 		${placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : ''}
